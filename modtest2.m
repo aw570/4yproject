@@ -11,7 +11,7 @@ impulseresponse=079.^[0:13]';
 tic
 %initialise a ModDemod object
 clear m;
-m=ModDemod(carriernum,preflen,noisevar,impulseresponse);
+m=OfdmMod(carriernum,preflen,noisevar,impulseresponse);
 %fill up an array with random symbols. it has to be 2D for now (consider
 %symbols(i,j)=the i'th symbol on the j'th carrier
 symbols=ceil(rand(32*carriernum,1)*16); %symbols belongs to [1..16] because silly matlab array indexing. 32 random frames, with 512 carriers each

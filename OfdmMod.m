@@ -1,4 +1,5 @@
-classdef ModDemod<handle
+%this used to be called ModDemod
+classdef OfdmMod<handle
     properties
         phasorList
         symProb
@@ -9,7 +10,7 @@ classdef ModDemod<handle
         equaliser
     end
     methods
-        function obj=ModDemod(carriernum,preflen,noisevar,impulseresponse)
+        function obj=OfdmMod(carriernum,preflen,noisevar,impulseresponse)
             obj.phasorList=complex([-3  -1  3 1 -3 -1 3 1 -3 -1 3 1 -3 -1 3 1],[ones(4,1)'*-3 ones(4,1)'*-1, ones(4,1)'*3 ones(4,1)']);
             obj.phasorList=obj.phasorList/max(abs(obj.phasorList)); % normalise for unit peak energy
             obj.symProb=ones(1,16)/16; %all 16 symbols are equiprobable
