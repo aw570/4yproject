@@ -8,16 +8,16 @@ classdef QpskMod<handle
     end
     methods
         function obj=QpskMod(noisevar,impulseresponse)
-            obj.phasorList=[1 1i -1 -1i];
-            obj.symProb=ones(1,4)/4; %all 16 symbols are equiprobable
+            obj.phasorList=[1 1i -1 -1i]';
+            obj.symProb=ones(4,1)/4; %all 16 symbols are equiprobable
             obj.phasorList=obj.phasorList/sum(abs(obj.phasorList).^2.*obj.symProb); % normalise for unit average energy
             obj.noisevar=noisevar;
             obj.impulseresponse=impulseresponse; %time-domain convolution coefficients
         end
         function phasors=MapSymbols(obj,symbols)
-            phasors=nan(size(symbols)+);
             phasors=obj.phasorList(symbols);
-            phasors=[ones(numel(obj.impulseresponse))*obj.phasors(1);phasors];
+            
+            phasors=[ones(numel(obj.impulseresponse)-1,1)*obj.phasorList(1);phasors];%stuff it with ones, otherwise conv would stuff it with zeros and confuse viterbi
         end
  
         function probabilities=PosteriorProb(obj,phasors)
@@ -41,12 +41,47 @@ classdef QpskMod<handle
         end
         function noisysig=Channel(obj,sig)
             noisysig=sig+(randn(size(sig))+1i*randn(size(sig)))*obj.noisevar; %add noise
-            a=numel(noisysig);
-             noisysig=conv(noisysig,obj.impulseresponse); % linear filter
-             noisysig=noisysig(1:a);
-        end
-
+   
+             noisysig=conv(noisysig,obj.impulseresponse,'valid'); % linear filter
             
+        end
+        function symbols=ViterbiDec(obj,phasors)
+            N=numel(phasors);
+            M=numel(obj.phasorList);
+            L=numel(obj.impulseresponse); %not yet used
+            ViterbiStates=zeros(numel(phasors),M,M); %note: filter is implicitly 2-tap
+            ViterbiBranchMetric=ViterbiStates;
+            ViterbiBranchMetric(1,:,2:end)=inf(M,M-1); %cost of symbol 0 being non-1 is infinite
+            for i=1:M
+                ViterbiBranchMetric(1,i,1)=norm(phasors(1)-obj.impulseresponse'*obj.phasorList([i 1]));
+            end
+%             ViterbiBranchMetric(1,:,1,1)            
+            for t=2:N
+                for j_0=1:M %j_k is the index of symbol k timesteps ago
+                    for j_1=1:M
+                        PathCost=norm(phasors(t)-obj.impulseresponse'*obj.phasorList([j_0,j_1]));
+                        [val,index]=min(ViterbiBranchMetric(t-1,j_1,:));
+                        ViterbiBranchMetric(t,j_0,j_1)=val+PathCost;
+                        ViterbiStates(t,j_0,j_1)=index;
+                    
+                    end
+                end
+            end
+            symbols=zeros(N,1);
+            t=N;
+            costs=squeeze(ViterbiBranchMetric(t,:,:));
+            [~,i]=max(costs(:));
+            [state(1),state(2)]=ind2sub(size(costs),i)
+            symbols(t)=state(1);
+            state(3)=ViterbiStates(t,state(1),state(2));
+            for t=N-1:-1:1 
+                state=[state(2:3), ViterbiStates(t,state(1),state(2))];
+                symbols(t)=state(1);
+            end
+                
+        end
+                
+                                      
         function Scatter(obj,phasors,errormap)
             figure
             colours=zeros([numel(phasors) 1]);
