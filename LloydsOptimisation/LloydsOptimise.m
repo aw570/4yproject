@@ -1,0 +1,76 @@
+function [ constellation, grid, nearestpoint,  informations, pdf] = LloydsOptimise( constellation, iterations, noisevar, gridsize, gridpoints)
+%LLOYDSOPTIMISE Create a constellation using Lloyd's algorithm
+%Create an optimised QAM constellation using lloyd's algorithm with
+%gaussian weightings. Usage:
+% [constellation, nearestpoint, informations, pdf] =
+% LloydsOptimise(constellation,iterations,noisevar,gridsize,gridpoints)
+% constellation can take 3 forms:
+% A column vector of complex constellation points
+% A positive scalar integer, in which case a random constellation of this
+% size will be generated
+% A negative scalar square number, in which case a square constellation of
+% this size will be generated. (eg constellation=-16 will create a QAM
+% constellation)
+%
+%The optimised constellation is output as constellation, an M-by-1 complex
+%
+%grid is a gridponts-by-gridpoints matrix of linearly space complex points
+%on the gridsize-by-gridsize plane
+%
+%nearestpoint is a gridpoints-by-gridpoints matrix indicating which
+%constellation point is closest to each point on the grid.
+%
+%The mutual informations are calculated at each iteration and are output as
+%the iterations-by-1 vector iterations
+%
+%pdf is a gridpoints-by-gridpoints matrix of matricies
+%
+
+
+%Generate random constellation if necessary
+if numel(constellation)==1
+    M=abs(constellation);
+    if constellation>0
+        constellation=complex(randn(M,1),randn(M,1));
+    else
+        % Will assume user is not an idiot, and therefore will not check
+        % that this is actually a square number.
+        M=-constellation;
+        m=sqrt(M);
+        constellationline=ones(m,1)*((1-m):2:(m-1));
+        constellation=complex(constellationline,constellationline');
+        clear constellationline m;
+    end
+
+else
+    M=numel(constellation);
+end
+constellation=constellation/norm(constellation);
+
+%Create a grid
+line=ones(gridpoints,1)*linspace(-gridsize,gridsize,gridpoints);
+grid=complex(line,line');
+clear line;
+
+%Perform the iteration
+for i=1:iterations
+    %maybe add the entropy bit here
+%     distances=abs(repmat(grid,[1 1 numel(constellationpoints)])-permute(repmat(constellationpoints,[1 gridsize gridsize]),[2 3 1]));
+%     [~,nearestpoint]=min(distances,[],3);
+    nearestpoint=dsearchn(complex2components(constellation(:)),complex2components(grid(:))); %not quite the same as the above two lines it replaces, i think due to edge cases (two equal distances)
+    
+    for j=1:M
+        decisionregion=grid(nearestpoint==j);
+        thispdf=normpdf_2d(decisionregion);
+        constellation(j)=sum(decisionregion.*thispdf)/sum(thispdf); %find the gaussian-weighted centroid
+    end
+end
+
+information=0;
+pdf=0;
+
+    
+nearestpoint=reshape(nearestpoint,gridpoints,gridpoints);
+
+end
+

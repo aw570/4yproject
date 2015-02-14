@@ -31,7 +31,7 @@ for i=1:16
     for i=1:numel(constellationpoints)
         decisionregion=grid(nearestpoint==i);
         regionprob(i)=sum(normpdf_2d(decisionregion))*(2*gridbound/gridsize)^2;
-        constellationpoints(i)=sum(decisionregion.*normpdf_2d(decisionregion))/sum(normpdf_2d(decisionregion));
+        constellationpoints(i)=sum(decisionregion.*normpdf_2d(decisionregion))/sum(normpdf_2d(decisionregion)); 
     end
     
 end
