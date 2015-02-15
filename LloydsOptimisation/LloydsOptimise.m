@@ -1,4 +1,4 @@
-function [ constellation, grid, nearestpoint,  informations, pdf] = LloydsOptimise( constellation, iterations, noisevar, gridsize, gridpoints)
+function [ constellation, grid, nearestpoint,  informations, ypdf] = LloydsOptimise( constellation, iterations, noisevar, gridsize, gridpoints)
 %LLOYDSOPTIMISE Create a constellation using Lloyd's algorithm
 %Create an optimised QAM constellation using lloyd's algorithm with
 %gaussian weightings. Usage:
@@ -25,7 +25,12 @@ function [ constellation, grid, nearestpoint,  informations, pdf] = LloydsOptimi
 %
 %pdf is a gridpoints-by-gridpoints matrix of matricies
 %
+%Note: operation is sped up significantly when using only the first 3
+%output arguments (not mutual information of y PDF). In this case the
+%noisevar argument will be ignored
 
+debug=false;
+normalise=true;
 
 %Generate random constellation if necessary
 if numel(constellation)==1
@@ -39,35 +44,52 @@ if numel(constellation)==1
         m=sqrt(M);
         constellationline=ones(m,1)*((1-m):2:(m-1));
         constellation=complex(constellationline,constellationline');
+        constellation=constellation(:);
         clear constellationline m;
     end
 
 else
     M=numel(constellation);
 end
-constellation=constellation/norm(constellation);
+constellation=sqrt(M)*constellation/norm(constellation);
 
 %Create a grid
 line=ones(gridpoints,1)*linspace(-gridsize,gridsize,gridpoints);
 grid=complex(line,line');
 clear line;
 
+%Create and empty informations vector
+informations=zeros(iterations,1);
+
 %Perform the iteration
 for i=1:iterations
-    %maybe add the entropy bit here
-%     distances=abs(repmat(grid,[1 1 numel(constellationpoints)])-permute(repmat(constellationpoints,[1 gridsize gridsize]),[2 3 1]));
-%     [~,nearestpoint]=min(distances,[],3);
-    nearestpoint=dsearchn(complex2components(constellation(:)),complex2components(grid(:))); %not quite the same as the above two lines it replaces, i think due to edge cases (two equal distances)
+%     distances=abs(grid(:)*ones(1,M)-ones(gridpoints^2,1)*constellation');
+%     [~,nearestpoint]=min(distances,[],2);
+    %%the 2 lines above are faster (~2x) than the one below, but seem to
+    %%inexplicably flip the imaginary axis upside down
+    nearestpoint=dsearchn(complex2components(constellation(:)),complex2components(grid(:))); %i think there's some way to speed up this command
+   
+    if debug
+        ConstellationVisualise(constellation,reshape(nearestpoint,gridpoints,gridpoints),gridsize,gridpoints);
+        pause(2);
+    end
     
     for j=1:M
         decisionregion=grid(nearestpoint==j);
         thispdf=normpdf_2d(decisionregion);
         constellation(j)=sum(decisionregion.*thispdf)/sum(thispdf); %find the gaussian-weighted centroid
     end
+    if nargout>3
+        [informations(i),ypdf]=ConstellationInformation(constellation,noisevar,gridsize,gridpoints,grid);
+    end
+    
+    if normalise
+        constellation=sqrt(M)*constellation/norm(constellation);
+    end
+
 end
 
-information=0;
-pdf=0;
+
 
     
 nearestpoint=reshape(nearestpoint,gridpoints,gridpoints);
