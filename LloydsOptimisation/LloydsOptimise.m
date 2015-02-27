@@ -54,9 +54,7 @@ end
 constellation=sqrt(M)*constellation/norm(constellation);
 
 %Create a grid
-line=ones(gridpoints,1)*linspace(-gridsize,gridsize,gridpoints);
-grid=complex(line,line');
-clear line;
+grid=MakeGrid(gridsize,gridpoints);
 
 %Create and empty informations vector
 informations=zeros(iterations,1);
@@ -80,7 +78,7 @@ for i=1:iterations
         constellation(j)=sum(decisionregion.*thispdf)/sum(thispdf); %find the gaussian-weighted centroid
     end
     if nargout>3
-        [informations(i),ypdf]=ConstellationInformation(constellation,noisevar,gridsize,gridpoints,grid);
+        [informations(i),ypdf]=ConstellationInformation(constellation,noisevar,gridsize,gridpoints);
     end
     
     if normalise
@@ -91,8 +89,9 @@ end
 
 
 
-    
+if iterations~=0    
 nearestpoint=reshape(nearestpoint,gridpoints,gridpoints);
+end
 
 end
 
