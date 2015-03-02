@@ -24,9 +24,10 @@ ypdf=reshape(sum(reshape(mvnpdf(complex2components(repmat(grid(:),[M 1])),comple
 % ypdf=reshape(mvnpdf(repmat(complex2components(grid(:)),[M 1]),reshape(repmat(complex2components(constellation).',[gridpoints.^2 1]),[],1),noisevar*eye(2))/M,gridpoints,gridpoints);
 % size(ypdf);
 
+pdfscale=sum(ypdf(:));
 
 %calculate h(Y) (where y is the observed signal after AWGN channel)
-hY=sum(-xlogx(ypdf(:)));
+hY=sum(-xlogx(ypdf(:))/sum(ypdf(:)));
 %calculate h(Y|X), which is simply the entropy of the noise
 hYX=1+log(2*pi*noisevar); % NOT sqrt(noisevar)... d'oh
 %calculate I(Y;X)=h(Y)-h(Y|X)
