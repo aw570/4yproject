@@ -1,5 +1,5 @@
 function [ information ] = ConstellationInformationMC( constellation, noisevar,samples)
-%CONSTELLATIONENTROPY Calculate mutual information of consetllation
+%CONSTELLATIONINFORMATIONMC Calculate mutual information of consetllation
 %  Calculate the mutual information of a constellation observed in an AWGN
 %  channel using monte carlo
 
@@ -19,8 +19,8 @@ HX=log(M);
 X=constellation(ceil(rand(samples,1)*M));
 Y=X+complex(randn(samples,1),randn(samples,1)).*sqrt(noisevar);
 %do a sanity check - delete this
-plot(Y,'.')
-axis equal
+% plot(Y,'.')
+% axis equal
 %now for each y value, compute the joint p(Y=y,X) for all X
 pYX=reshape(mvnpdf(complex2components(repmat(Y,[M 1])),complex2components(reshape(repmat(constellation.',[samples 1]),[],1)),noisevar*eye(2)),samples,M)/M;
 %now pYX(i,j)=p(Y(i),constellation(j));

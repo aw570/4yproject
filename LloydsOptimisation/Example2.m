@@ -1,22 +1,21 @@
 %Generate a 16-QAM optimised constellation, visualise it with decision
 %regions and display pdf
 
-M=16;
+M=64;
 iterations=32;
 noisevar=0.1;
 gridsize=3;
 gridpoints=256;
 
-M=(0.8+0.4*rand(M,1)).*exp(1i*2*pi*randn(M,1));
 figure;;
 plot(M,'+')
 title('Seed constellation');
 
-[ constellation, grid, nearestpoint,  informations,ypdf]=LloydsOptimise_ArbitraryFn(M,iterations,noisevar,gridsize,gridpoints);
+[ constellation, grid, nearestpoint,  informations,ypdf]=LloydsOptimise(-M,iterations,noisevar,gridsize,gridpoints);
 
 figure;
 ConstellationVisualise(constellation,nearestpoint,gridsize,gridpoints);
-title('16-QAM optimised constellation')
+title('64-QAM optimised constellation')
 
 figure;
 plot(informations);

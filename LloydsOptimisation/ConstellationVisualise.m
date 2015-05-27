@@ -5,10 +5,12 @@ function [  ] = ConstellationVisualise( constellation,nearestpoint,gridsize,grid
 M=numel(constellation);
 %Generate a colourmap (there must be a nicer way to do this - maybe using 4
 %colour theorem
-colourmap=[];
-for i=1:M
-   colourmap=[colourmap; i/M mod(2*i,M)/M mod(4*i,M)/M];
-end
+% colourmap=[];
+% for i=1:M
+%    colourmap=[colourmap; i/M mod(2*i,M)/M mod(4*i,M)/M];
+% end
+colourmap=jet(M);
+colourmap=colourmap(randperm(M),:);
 
 imshow(nearestpoint,colourmap);
 hold on;

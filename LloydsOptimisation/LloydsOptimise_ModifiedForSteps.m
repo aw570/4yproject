@@ -29,7 +29,7 @@ function [ constellation, grid, nearestpoint,  informations, ypdf] = LloydsOptim
 %output arguments (not mutual information of y PDF). In this case the
 %noisevar argument will be ignored
 
-debug=false;
+debug=true;
 normalise=true;
 
 %Generate random constellation if necessary
@@ -69,8 +69,7 @@ for i=1:iterations
    
     if debug
         ConstellationVisualise(constellation,reshape(nearestpoint,gridpoints,gridpoints),gridsize,gridpoints);
-        print(sprintf('intermediate%d.png',i),'-dpng','-r300');
-%         pause(.5);
+        pause(2);
     end
     
     for j=1:M
@@ -94,5 +93,5 @@ if iterations~=0
 nearestpoint=reshape(nearestpoint,gridpoints,gridpoints);
 end
 
-end
+Eend
 

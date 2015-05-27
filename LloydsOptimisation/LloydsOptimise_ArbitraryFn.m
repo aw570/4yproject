@@ -1,4 +1,4 @@
-function [ constellation, grid, nearestpoint,  informations, ypdf] = LloydsOptimise( constellation, iterations, noisevar, gridsize, gridpoints)
+function [ constellation, grid, nearestpoint, informations, ypdf] = LloydsOptimise_ArbitraryFn( constellation, iterations, noisevar, gridsize, gridpoints)
 %LLOYDSOPTIMISE Create a constellation using Lloyd's algorithm
 %Create an optimised QAM constellation using lloyd's algorithm with
 %gaussian weightings. Usage:
@@ -75,11 +75,11 @@ for i=1:iterations
     
     for j=1:M
         decisionregion=grid(nearestpoint==j);
-        thispdf=normpdf_2d(decisionregion);
+        thispdf=normpdf_radial(decisionregion);
         constellation(j)=sum(decisionregion.*thispdf)/sum(thispdf); %find the gaussian-weighted centroid
     end
     if nargout>3
-        [informations(i),ypdf]=ConstellationInformation(constellation,noisevar,gridsize,gridpoints);
+        [informations(i)]=ConstellationInformationMC(constellation,noisevar,1e5);
     end
     
     if normalise
@@ -88,6 +88,7 @@ for i=1:iterations
 
 end
 
+[~,ypdf]=ConstellationInformation(constellation,noisevar,gridsize,gridpoints);
 
 
 if iterations~=0    
